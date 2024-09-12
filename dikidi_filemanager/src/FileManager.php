@@ -1,10 +1,10 @@
 <?php
 
-namespace app\fm;
+namespace app;
 
 use Exception;
 
-include 'Entry.php';
+include_once 'Entry.php';
 
 /**
  * File manager
@@ -12,15 +12,17 @@ include 'Entry.php';
  * @property string $root
  * @property string $path
  */
-class FM
+class FileManager
 {
-    
-    private $allowedFiles;
-    
-    private $root;
-    
-    private $path = '/';
-    
+    private array $allowedFiles;
+
+    private string $root;
+
+    private string $path = '/';
+
+    /**
+     * @throws Exception
+     */
     public function __construct(string $root = ".", array $allowedFiles = ['png', 'jpg'])
     {
         if (!is_dir($root)) {
@@ -29,29 +31,33 @@ class FM
         $this->root = realpath($root);
         $this->allowedFiles = $allowedFiles;
     }
-    
+
     /**
      * Get current path
      *
      * @return string
      */
-    public function pwd()
+    public function pwd(): string
     {
         return $this->path;
     }
-    
+
     /**
      * List files
      *
      * @return array
+     * @throws Exception
      */
-    public function ls()
+    public function ls(): array
     {
         if (!is_dir($this->getFullPath())) {
             throw new Exception($this->getFullPath($this->path) . ' не является директорией');
         }
+
         $directory = dir($this->getFullPath());
+
         $entries = [];
+
         while (($entry = $directory->read()) !== false) {
             if ($this->skip($entry)) {
                 continue;
@@ -61,63 +67,70 @@ class FM
         $directory->close();
         return $entries;
     }
-    
+
     /**
-     * Change directory
-     *
      * @param string $path
      * @return void
+     * @throws Exception
      */
-    public function cd($path)
+    public function cd(string $path): void
     {
         $this->path = $this->getNewPath($path);
     }
-    
+
     /**
-     * Show full real path
-     *
-     * @param string $path
+     * @param string|null $path
      * @return string
      */
-    public function getFullPath($path = null)
+    public function getFullPath(string $path = null): string
     {
         return realpath($this->root . DIRECTORY_SEPARATOR . $this->path . DIRECTORY_SEPARATOR . $path);
     }
-    
-    private function getNewPath($path)
+
+    /**
+     * @param string $path
+     * @return string
+     * @throws Exception
+     */
+    private function getNewPath(string $path): string
     {
         $newFullPath = $this->getFullPath($path);
+
         if (!file_exists($newFullPath)) {
             throw new Exception($newFullPath . ' не существует');
         } elseif (!is_dir($newFullPath)) {
             throw new Exception($newFullPath . ' не является директорией');
         }
+
         $rootLength = mb_strlen($this->root);
+
         if (
             $rootLength > mb_strlen($newFullPath) ||
             mb_substr($newFullPath, 0, $rootLength) !== $this->root
         ) {
             throw new Exception('Неверно указан путь ' . $path);
         }
+
         return DIRECTORY_SEPARATOR . $path;
     }
-    
+
     /**
-     * Skip not allowed files
-     *
-     * @param string $entry
+     * @param $path
      * @return bool
      */
-    private function skip($path)
+    private function skip($path): bool
     {
         if ($path === '.') {
             return true;
         }
+
         $fullPath = $this->getFullPath($path);
         $pathParts = pathinfo($fullPath);
+
         if ($path === '..' && $this->getFullPath() === $this->root) {
             return true;
         }
+
         if (
             is_dir($fullPath) === false
             && !in_array($pathParts['extension'], $this->allowedFiles)
