@@ -1,21 +1,21 @@
 <?php
 
-use app\fm\FM;
-use app\fm\Router;
+use app\FileManager;
+use app\Router;
 
 chdir(__DIR__);
 
-include '../autoloader.php';
+include_once 'autoloader.php';
 
 try {
-    $fm = new FM('../storage');
     $router = Router::getInstance($_GET['r'] ?? '');
 
-    $fm->cd(router::getPath());
+    $fileManager = new FileManager('storage');
+    $fileManager->cd(Router::getPath());
 
-    echo $fm->pwd() . '<br>' . PHP_EOL;
+    echo $fileManager->pwd() . '<br>' . PHP_EOL;
 
-    foreach ($fm->ls() as &$entry) {
+    foreach ($fileManager->ls() as &$entry) {
         if ($entry->isDir()) {
             echo '<a href="?r=' . $router::to($entry->getFileName()) . '">' . $entry->getFileName() . '</a><br>' . PHP_EOL;
         } else {

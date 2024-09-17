@@ -1,27 +1,27 @@
 <?php
 
-namespace app\fm;
+namespace app;
 
 /**
  * File entry
  */
 class Entry
 {
-    private $fileName;
-    private $isDir;
-    
+    private string $fileName;
+    private bool $isDir;
+
     public function __construct($fileName, $isDir)
     {
         $this->fileName = $fileName;
         $this->isDir = $isDir;
     }
 
-    public function getFileName()
+    public function getFileName(): string
     {
         return $this->fileName;
     }
 
-    public function isDir()
+    public function isDir(): bool
     {
         return $this->isDir;
     }
